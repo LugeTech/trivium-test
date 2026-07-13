@@ -1,0 +1,12 @@
+{
+  "name": "image-resizer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Client-only image resizer that runs in the browser.",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

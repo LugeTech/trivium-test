@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Resizer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Image Resizer</h1>
+      <p>Resize images entirely in your browser — no server, no uploads.</p>
+    </header>
+
+    <main class="card">
+      <div id="drop-zone" class="drop-zone">
+        <input type="file" id="file-input" accept="image/*" hidden>
+        <div class="drop-zone-content">
+          <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p class="drop-title">Click or drag & drop an image</p>
+          <p class="drop-hint">JPG, PNG, WebP</p>
+        </div>
+      </div>
+
+      <section id="editor" class="editor hidden">
+        <div class="preview-wrap">
+          <img id="preview" class="preview" alt="Resized preview" />
+        </div>
+
+        <div class="controls">
+          <div class="row">
+            <div class="field">
+              <label for="width">Width</label>
+              <input type="number" id="width" min="1" max="16000" />
+            </div>
+            <button type="button" id="lock-ratio" class="lock-btn" title="Lock aspect ratio">Locked</button>
+            <div class="field">
+              <label for="height">Height</label>
+              <input type="number" id="height" min="1" max="16000" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="format">Format</label>
+              <select id="format">
+                <option value="original">Original</option>
+                <option value="image/jpeg">JPEG</option>
+                <option value="image/png">PNG</option>
+                <option value="image/webp">WebP</option>
+              </select>
+            </div>
+            <div class="field quality-field">
+              <label for="quality">Quality <span id="quality-value">90%</span></label>
+              <input type="range" id="quality" min="0.1" max="1" step="0.05" value="0.9" />
+            </div>
+          </div>
+
+          <div class="info-row">
+            <span id="output-dims">—</span>
+            <span id="output-size">—</span>
+          </div>
+
+          <button type="button" id="download" class="download-btn">Download Resized Image</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="dist/app.js"></script>
+</body>
+</html>
