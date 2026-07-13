@@ -20,6 +20,7 @@
   let resizedBlob: Blob | null = null;
   let currentPreviewUrl: string | null = null;
   let resizeTimeout: number | null = null;
+  let dragCounter = 0;
 
   function formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
@@ -103,19 +104,33 @@
     handleFile(target.files?.[0]);
   });
 
-  dropZone.addEventListener('dragover', (e) => {
+  dropZone.addEventListener('dragenter', (e) => {
     e.preventDefault();
+    dragCounter++;
     dropZone.classList.add('drag-over');
   });
 
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('drag-over');
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter === 0) {
+      dropZone.classList.remove('drag-over');
+    }
   });
 
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    dragCounter = 0;
     dropZone.classList.remove('drag-over');
-    handleFile(e.dataTransfer?.files[0]);
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      handleFile(files[0]);
+    }
   });
 
   lockBtn.addEventListener('click', () => {
