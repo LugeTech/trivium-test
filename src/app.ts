@@ -97,7 +97,13 @@
     }
   }
 
-  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('click', (e) => {
+    // Prevent triggering file input when clicking on child elements that are interactive
+    // or when the editor is already visible (user might be clicking on controls)
+    if (editor.classList.contains('hidden')) {
+      fileInput.click();
+    }
+  });
 
   fileInput.addEventListener('change', (e) => {
     const target = e.target as HTMLInputElement;
@@ -106,12 +112,17 @@
 
   dropZone.addEventListener('dragenter', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     dragCounter++;
     dropZone.classList.add('drag-over');
   });
 
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
   });
 
   dropZone.addEventListener('dragleave', (e) => {
@@ -127,9 +138,36 @@
     e.stopPropagation();
     dragCounter = 0;
     dropZone.classList.remove('drag-over');
-    const files = e.dataTransfer?.files;
-    if (files && files.length > 0) {
-      handleFile(files[0]);
+
+    const dt = e.dataTransfer;
+    if (!dt) return;
+
+    // First try to get files directly
+    if (dt.files && dt.files.length > 0) {
+      handleFile(dt.files[0]);
+      return;
+    }
+
+    // If no files, check items for URL data (dragged from another tab/website)
+    if (dt.items && dt.items.length > 0) {
+      for (let i = 0; i < dt.items.length; i++) {
+        const item = dt.items[i];
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          if (file) {
+            handleFile(file);
+            return;
+          }
+        } else if (item.kind === 'string' && (item.type === 'text/uri-list' || item.type === 'text/plain')) {
+          item.getAsString((uri) => {
+            // Check if the URI looks like an image URL
+            if (uri && (uri.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i) || uri.startsWith('data:image/'))) {
+              fetchAndLoadImage(uri);
+            }
+          });
+          return;
+        }
+      }
     }
   });
 
@@ -218,6 +256,32 @@
       currentPreviewUrl = url;
       preview.src = url;
     }, mime, qualityArg);
+  }
+
+  // Prevent default browser behavior for drag events on the entire document
+  // This prevents the browser from opening dragged images in a new tab
+  document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  document.addEventListener('drop', (e) => {
+    e.preventDefault();
+  });
+
+  async function fetchAndLoadImage(url: string): Promise<void> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch image');
+      const blob = await response.blob();
+      if (blob.type.startsWith('image/')) {
+        // Create a File from the blob with a meaningful name
+        const fileName = url.split('/').pop()?.split('?')[0] || 'image.jpg';
+        const file = new File([blob], fileName, { type: blob.type });
+        handleFile(file);
+      }
+    } catch (err) {
+      console.error('Failed to load dragged image:', err);
+    }
   }
 
   downloadBtn.addEventListener('click', () => {
